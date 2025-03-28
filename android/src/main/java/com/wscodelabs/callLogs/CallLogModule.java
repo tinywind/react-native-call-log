@@ -53,8 +53,20 @@ public class CallLogModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void loadWithFilter(int limit, @Nullable ReadableMap filter, Promise promise) {
         try {
-            Cursor cursor = this.context.getContentResolver().query(CallLog.Calls.CONTENT_URI,
-                    null, null, null, CallLog.Calls.DATE + " DESC");
+            String[] projection = new String[]{
+                    Calls.NUMBER,
+                    Calls.TYPE,
+                    Calls.DATE,
+                    Calls.DURATION,
+                    Calls.CACHED_NAME,
+                    Calls.SUBSCRIPTION_ID
+            };
+
+            Cursor cursor = this.context.getContentResolver().query(
+                    CallLog.Calls.CONTENT_URI,
+                    projection,
+                    null, null,
+                    CallLog.Calls.DATE + " DESC");
 
             WritableArray result = Arguments.createArray();
 
@@ -68,11 +80,11 @@ public class CallLogModule extends ReactContextBaseJavaModule {
             String maxTimestamp = !nullFilter && filter.hasKey("maxTimestamp") ? filter.getString("maxTimestamp") : "-1";
 
             String types = !nullFilter && filter.hasKey("types") ? filter.getString("types") : "[]";
-            JSONArray typesArray= new JSONArray(types);
+            JSONArray typesArray = new JSONArray(types);
             Set<String> typeSet = new HashSet<>(Arrays.asList(toStringArray(typesArray)));
 
             String phoneNumbers = !nullFilter && filter.hasKey("phoneNumbers") ? filter.getString("phoneNumbers") : "[]";
-            JSONArray phoneNumbersArray= new JSONArray(phoneNumbers);
+            JSONArray phoneNumbersArray = new JSONArray(phoneNumbers);
             Set<String> phoneNumberSet = new HashSet<>(Arrays.asList(toStringArray(phoneNumbersArray)));
 
             int callLogCount = 0;
@@ -82,6 +94,7 @@ public class CallLogModule extends ReactContextBaseJavaModule {
             final int DATE_COLUMN_INDEX = cursor.getColumnIndex(Calls.DATE);
             final int DURATION_COLUMN_INDEX = cursor.getColumnIndex(Calls.DURATION);
             final int NAME_COLUMN_INDEX = cursor.getColumnIndex(Calls.CACHED_NAME);
+            final int SUBSCRIPTION_ID_INDEX = cursor.getColumnIndex(Calls.SUBSCRIPTION_ID);
 
             boolean minTimestampDefined = minTimestamp != null && !minTimestamp.equals("0");
             boolean minTimestampReached = false;
@@ -90,12 +103,12 @@ public class CallLogModule extends ReactContextBaseJavaModule {
                 String phoneNumber = cursor.getString(NUMBER_COLUMN_INDEX);
                 int duration = cursor.getInt(DURATION_COLUMN_INDEX);
                 String name = cursor.getString(NAME_COLUMN_INDEX);
+                int subscriptionId = cursor.getInt(SUBSCRIPTION_ID_INDEX);
 
                 String timestampStr = cursor.getString(DATE_COLUMN_INDEX);
                 minTimestampReached = minTimestampDefined && Long.parseLong(timestampStr) <= Long.parseLong(minTimestamp);
 
                 DateFormat df = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.MEDIUM, SimpleDateFormat.MEDIUM);
-                //DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String dateTime = df.format(new Date(Long.valueOf(timestampStr)));
 
                 String type = this.resolveCallType(cursor.getInt(TYPE_COLUMN_INDEX));
@@ -115,6 +128,7 @@ public class CallLogModule extends ReactContextBaseJavaModule {
                     callLog.putString("dateTime", dateTime);
                     callLog.putString("type", type);
                     callLog.putInt("rawType", cursor.getInt(TYPE_COLUMN_INDEX));
+                    callLog.putInt("subscriptionId", subscriptionId);
                     result.pushMap(callLog);
                     callLogCount++;
                 }
@@ -129,12 +143,12 @@ public class CallLogModule extends ReactContextBaseJavaModule {
     }
 
     public static String[] toStringArray(JSONArray array) {
-        if(array==null)
+        if (array == null)
             return null;
 
-        String[] arr=new String[array.length()];
-        for(int i=0; i<arr.length; i++) {
-            arr[i]=array.optString(i);
+        String[] arr = new String[array.length()];
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = array.optString(i);
         }
         return arr;
     }

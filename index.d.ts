@@ -1,5 +1,5 @@
 declare namespace CallLogs {
-  export enum callType {
+  export enum CallType {
     OUTGOING = 'OUTGOING',
     INCOMING = 'INCOMING',
     MISSED = 'MISSED',
@@ -25,6 +25,7 @@ declare namespace CallLogs {
     dateTime: string;
     type: CallType;
     rawType: number;
+    subscriptionId: number;
   }
 
   const load: (limit: number, filter?: CallFilter) => Promise<CallLog[]>;
