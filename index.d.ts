@@ -1,14 +1,12 @@
 declare namespace CallLogs {
-  export enum CallType {
-    OUTGOING = 'OUTGOING',
-    INCOMING = 'INCOMING',
-    MISSED = 'MISSED',
-    VOICEMAIL = 'VOICEMAIL',
-    REJECTED = 'REJECTED',
-    BLOCKED = 'BLOCKED',
-    ANSWERED_EXTERNALLY = 'ANSWERED_EXTERNALLY',
-    UNKNOWN = 'UNKNOWN',
-  }
+  export type CallType = 'OUTGOING'
+    | 'INCOMING'
+    | 'MISSED'
+    | 'VOICEMAIL'
+    | 'REJECTED'
+    | 'BLOCKED'
+    | 'ANSWERED_EXTERNALLY'
+    | 'UNKNOWN'
 
   export interface CallFilter {
     minTimestamp?: number;
